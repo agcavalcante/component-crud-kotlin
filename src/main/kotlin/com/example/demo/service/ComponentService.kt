@@ -5,10 +5,12 @@ import com.example.demo.configuration.ExceptionsConstants.Exceptions.QUANTITY_EQ
 import com.example.demo.data.Component
 import com.example.demo.exceptions.IllegalQuantityException
 import com.example.demo.exceptions.NoContentException
+import com.example.demo.sender.SendMessage
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.springframework.stereotype.Service
 
 @Service
-class ComponentService {
+class ComponentService (var sendMessage: SendMessage){
 
     fun resolveComponentToShow(components: MutableList<Component>): MutableList<Component>? {
         val componentListToReturn = mutableListOf<Component>()
@@ -33,7 +35,7 @@ class ComponentService {
         }
     }
 
-    fun verifyQuantityBeforeInsert(component: Component): Component {
+    fun verifyQuantityBeforeInsert(component: Component, method: String): Component {
 //        return if (component.quantity > 0) {
 //            component
 //        } else {
@@ -42,7 +44,17 @@ class ComponentService {
         when {
             component.quantity == 0 -> throw IllegalQuantityException(QUANTITY_EQUALS_OR_LOWER_THAN_ZERO)
             component.quantity!! < 0 -> throw IllegalQuantityException(QUANTITY_EQUALS_OR_LOWER_THAN_ZERO)
-            else -> return component
+            else -> {
+                mappingObjectToSend(component, method)
+                return component
+            }
         }
+    }
+
+    fun mappingObjectToSend(component: Component, method: String) {
+        val mappedObject = mutableMapOf<String, String>()
+        mappedObject["method"] = method
+        mappedObject["content"] = jacksonObjectMapper().writeValueAsString(component)
+        return sendMessage.send(mappedObject)
     }
 }

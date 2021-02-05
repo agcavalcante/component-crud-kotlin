@@ -5,8 +5,10 @@ import com.example.demo.data.Component
 import com.example.demo.data.ComponentRepository
 import com.example.demo.exceptions.NoContentException
 import com.example.demo.request.ComponentRequest
+import com.example.demo.sender.SendMessage
 import com.example.demo.service.ComponentService
 import org.bson.types.ObjectId
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -14,7 +16,8 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/component")
 class ComponentController(
     private val repository: ComponentRepository,
-    private val componentService: ComponentService
+    private val componentService: ComponentService,
+    private val sendMessage: SendMessage
 ) {
 
     @GetMapping
@@ -54,16 +57,16 @@ class ComponentController(
                 value = request.value
             )
         )
-        return ResponseEntity.ok(componentToUpdate)
+        return ResponseEntity.ok(componentService.verifyQuantityBeforeInsert(componentToUpdate, RequestMethod.PUT.name))
     }
 
     @PostMapping
-    fun postOneComponent(@RequestBody request: ComponentRequest): Component {
+    fun postOneComponent(@RequestBody request: ComponentRequest): ResponseEntity<Component> {
         val componentReceived = Component(
             name = request.name, manufacturer = request.manufacturer,
             isActive = true, quantity = request.quantity, group = request.group, value = request.value
         )
-        return repository.save(componentService.verifyQuantityBeforeInsert(componentReceived))
+        return ResponseEntity(componentService.verifyQuantityBeforeInsert(componentReceived, RequestMethod.POST.name), HttpStatus.OK)
     }
 
     @DeleteMapping("/{id}")

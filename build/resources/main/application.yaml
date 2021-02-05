@@ -1,0 +1,21 @@
+spring:
+    data:
+      mongodb:
+        host: localhost
+        port: 27017
+        authentication-database: admin
+        database: component-db
+        username: camarguinho
+        password: camarguinho
+    rabbit:
+      port: 5672
+      host: localhost
+      username: guest
+      password: guest
+      queue: component-zone
+      url: amqp://guest:guest@localhost:5672/
+
+server:
+  port: 8090
+  error:
+    include-message: always
